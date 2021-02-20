@@ -35,6 +35,8 @@ df_weather_stations =  xr.open_dataset(
             'longitude':LON}
         ).drop_duplicates()
         
+df_weather_stations.to_csv('weather_stations_all.csv')
+        
 # Get min max lat long boxes
 wt_min = df_turbines.groupby(REGION).min()
 wt_max = df_turbines.groupby(REGION).max()

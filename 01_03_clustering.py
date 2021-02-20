@@ -5,6 +5,7 @@ Created on Sat Feb 20 18:14:31 2021
 
 @author: tvaisanen
 """
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,23 +16,8 @@ from collections import Counter
 
 
 def plotting(weather_coordinates, pr_coordinates, cluster_centers):
-    """
 
-    Parameters
-    ----------
-    weather_coordinates : TYPE
-        DESCRIPTION.
-    pr_coordinates : TYPE
-        What was the type of this?.
-    cluster_centers : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-
-    """
-    world = geopandas.read_file("maps/ne_10m_admin_1_states_provinces.shp")
+    world = geopandas.read_file(c.MAP)
     swe = world[world['admin'] == 'Sweden']  # Filter out Sweden from the world
     base = swe.plot(color='white', edgecolor='black',  figsize=(15,15))
 
@@ -86,11 +72,25 @@ config = {
    'cluster_size': 0.4,
 }
 
+selected_weather_stations = list()
+
 for i, cluster in enumerate(cluster_coordinates_by_region):
+    
+    # Get clusters for each region
     weather_coordinates, labels, cluster_centers = k_means_clustering(df, cluster, config) 
+    
     f = plt.figure(figsize=(15,10))
+    
     plotting(weather_coordinates, cluster, cluster_centers)
-    plt.savefig('figures/01_03_weather_station_clusters_{}.png'.format(c.PRICE_REGIONS[i]))
+    
+    plt.savefig(
+        os.path.join(
+            c.FIGURES_PATH,
+            '01_03_weather_station_clusters_{}.png'.format(c.PRICE_REGIONS[i])
+            )       
+        )
+    
+    selected_weather_stations.append(weather_coordinates)
 
 
 
