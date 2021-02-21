@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+CLUSTER_WEIGHT = 'weight'
 WEATHER_DATA_PATH = '../data'
 PRICE_REGIONS = ['SE1','SE2','SE3','SE4']
 LAT = 'lat'

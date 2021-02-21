@@ -68,8 +68,8 @@ cluster_coordinates_by_region = [
 
 
 config = {
-   'n_clusters': 10,
-   'cluster_size': 0.4,
+   'n_clusters': 3,
+   'cluster_size': .8,
 }
 
 selected_weather_stations = list()
