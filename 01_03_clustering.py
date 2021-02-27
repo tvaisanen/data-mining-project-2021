@@ -47,9 +47,13 @@ def k_means_clustering(df, pr_coordinates, config):
         )
         
     
-    df['cluster'] = prediction   
-    df['distance'] = df.apply(calc_distance, axis=1)
+    df[c.CLUSTER] = prediction   
+    df[c.DISTANCE] = df.apply(calc_distance, axis=1)
     
+    counter = Counter(kmeans.labels_)
+    df[c.CLUSTER_WEIGHT] = df.apply(lambda row: counter[row[c.CLUSTER]], axis=1)
+    
+    # distance is the cluster size radius
     distance = config["cluster_size"]
 
     return(df[df.distance <= distance], kmeans.labels_, kmeans.cluster_centers_)
@@ -81,6 +85,8 @@ for i, cluster in enumerate(cluster_coordinates_by_region):
     
     f = plt.figure(figsize=(15,10))
     
+    weather_coordinates[c.REGION] = c.PRICE_REGIONS[i]
+    
     plotting(weather_coordinates, cluster, cluster_centers)
     
     plt.savefig(
@@ -92,6 +98,8 @@ for i, cluster in enumerate(cluster_coordinates_by_region):
     
     selected_weather_stations.append(weather_coordinates)
 
+
+pd.concat(selected_weather_stations).to_csv('weather_stations_clustered.csv')
 
 
 
