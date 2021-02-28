@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import os
+import constants as c
 
 WEATHER_DATA_PATH = '../data'
 PRICE_REGIONS = ['SE1','SE2','SE3','SE4']
@@ -16,15 +17,16 @@ TIME = 'time'
 # Load data
 
 # Data frame of: time, SE1, SE2, SE3, SE4
-df_windpower = pd.read_csv('../windpower.csv').rename(columns={'Unnamed: 0':TIME})
+df_windpower = pd.read_csv('./windpower.csv').rename(columns={'Unnamed: 0':TIME})
 
 # Data frame of: region, lat, long
 df_turbines = pd.read_csv('../windturbines.csv')[
-    ['Price region', 'Latitude', 'Longitude']
+    ['Price region', 'Latitude', 'Longitude', 'Installation date']
     ].rename(columns={
         'Price region':REGION, 
         'Latitude':LAT, 
-        'Longitude':LON})
+        'Longitude':LON,
+        'Installation date': c.INSTALLATION_DATE})
 
 # Extract distinct weather stations from the first weather data file
 df_weather_stations =  xr.open_dataset(
