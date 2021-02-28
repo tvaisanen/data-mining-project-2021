@@ -10,6 +10,7 @@ import constants as c
 import pandas as pd
 import xarray as xr
 import os 
+from datetime import datetime
 
 weather_stations = pd.read_csv(
     './weather_stations_clustered.csv').drop(
@@ -21,34 +22,52 @@ weather_stations_lat_lon = weather_stations.set_index(
                     columns=['time','x','y', 'weight'])
         
 
+weather_data_files = set([ f.split(".")[0] for f in os.listdir(c.WEATHER_DATA_PATH)])
+execution_times = list()
+processed_files = set([ f.split(".")[0] for f in os.listdir('./reduced-data') ])
 
-for fn in os.listdir(c.WEATHER_DATA_PATH):
-    try:
-        ds = xr.open_dataset(os.path.join(c.WEATHER_DATA_PATH,fn))
-        df = ds.to_dataframe().rename(
-            columns={
-            'latitude':c.LAT,
-            'longitude':c.LON
-        })
+unprocessed_files = list(["{}.nc".format(f) for f in weather_data_files.difference(processed_files)])
+
+
+
+def run(files):
+    for i, fn in enumerate(files):
+        try:
+            time_start = datetime.now()
+       
+            
+            ds = xr.open_dataset(os.path.join(c.WEATHER_DATA_PATH,fn))
+            df = ds.to_dataframe().rename(
+                columns={
+                'latitude':c.LAT,
+                'longitude':c.LON
+            })
+            
+            df.reset_index(inplace=True)
+            
+            joined_data = df.set_index([c.LAT, c.LON]).join(
+                weather_stations_lat_lon, 
+                              how='left', 
+                              lsuffix='_left', 
+                              rsuffix='_right').dropna()
+                        
+            reduced = joined_data.groupby(['time', 'cluster', 'region']).mean()
+            reduced.reset_index(inplace=True)
+            reduced = reduced.set_index('time')
+            reduced.index = pd.to_datetime(reduced.index)
+            
+            reduced.to_csv('./reduced-data/{}.csv'.format(fn.split(".")[0]))
+            time_end = datetime.now()
+            
+            timedelta = time_end - time_start
         
-        df.reset_index(inplace=True)
-        
-        joined_data = df.set_index([c.LAT, c.LON]).join(
-            weather_stations_lat_lon, 
-                          how='left', 
-                          lsuffix='_left', 
-                          rsuffix='_right').dropna()
-                    
-        reduced = joined_data.groupby(['time', 'cluster', 'region']).mean()
-        reduced.reset_index(inplace=True)
-        reduced = reduced.set_index('time')
-        reduced.index = pd.to_datetime(reduced.index)
-        
-        reduced.to_csv('./reduced-data/{}.csv'.format(fn.split(".")[0]))
-    except Exception as e:
-        print(e)
-        print('data reduction failed with file: {}'.format(fn))
-     
+            execution_times.append(timedelta)
+            
+            print("processed weather data file {}/{}: {} in {} seconds.".format(i+1, len(weather_data_files), fn, timedelta.total_seconds()))
+        except Exception as e:
+            print(e)
+            print('data reduction failed with file: {}'.format(fn))
+         
 
 """
 
